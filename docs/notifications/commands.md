@@ -17,19 +17,91 @@ The Companion apps offer a lot of different notification options. In place of po
 | Command | Description |
 | ------- | ----------- |
 | `clear_notification` | Removes a notification from the status bar, [more details](basic.md#replacing-notifications). |
+| `command_activity` | Launch an activity with a specified URI to any app, [more details](#activity) and use cases below. |
 | `command_bluetooth` | Turn bluetooth on or off. |
+| `command_ble_transmitter` | Turn BLE beacon transmitter on or off. |
 | `command_broadcast_intent` | Send a broadcast intent to another app, [see below](#broadcast-intent) for how it works and whats required. |
 | `command_dnd` | Control Do Not Disturb mode on the device, [see below](#do-not-disturb) for how it works and whats required. |
+| `command_high_accuracy_mode` | Control the high accuracy mode of the background location sensor, [see below](#high-accuracy-mode) for how it works and whats required. |
 | `command_ringer_mode` | Control the ringer mode on the device, [see below](#ringer-mode) for how it works and whats required. |
-| `command_volume_level` | Control the volume for all available audio streams, [see below](#volume-level) for how it works and whats required. &nbsp;<span class="beta">BETA</span> |
-| `command_high_accuracy_mode` | Control the high accuracy mode of the background location sensor, [see below](#high-accuracy-mode) for how it works and whats required. &nbsp;<span class="beta">BETA</span> |
+| `command_volume_level` | Control the volume for all available audio streams, [see below](#volume-level) for how it works and whats required. |
+| `command_webview` | Open the app to the homepage or any dashboard or view, [see below](#webview) for how. |
 | `remove_channel` | Remove a notification channel from the device settings, [more details](basic.md#removing-a-channel). |
 | `request_location_update` | Request a location update from the device, [see below](#request-location-updates) for implications about this command. |
 
 
+## Activity
+
+![Android](/assets/android.svg)
+
+On Android you can send `message: command_activity` to launch any activity. This command requires a specific permission that the app is unable to prompt or auto-accept. Instead by sending the command for the first time the app will launch an activity allowing the user to enable Home Assistant access to the devices Display over other apps Policy. This is required in order for the app to gain control of this setting.
+
+The `tag` parameter will need to be set to the Intent Action string, or the notification will post as normal. If the activity requires a URI then you will need set that as the `title`, otherwise the notification will post as normal. `channel` can be set to the package of where the activity is to be launched, otherwise Android will make a best effort to pick a default. If the package cannot be found then the notification will post as normal. You must know the intending URI (if required), action and package to start the activity. Typically this will be a documented feature if supported by the app.
+
+[Extras](https://developer.android.com/reference/android/content/Intent#putExtra(java.lang.String,%20java.lang.String)) are also supported under the `group` parameter. As there can be any number of extras added to the intent we will need to split each extra by a comma `,`. Then each extra name and value needs to be separated by a colon `:`. Please refer to the example in [Broadcast Intent](#broadcast-intent) to see the proper format.
+
+`subject` can also be set to the MIME type if you need to set it. You will need to know the MIME type string if the activity requires it.
+
+The below example follows [Google's documentation](https://developers.google.com/maps/documentation/urls/android-intents#launch-turn-by-turn-navigation) to show you how this feature works by launching Google Maps Navigation.
+
+Example:
+
+```yaml
+automation:
+  - alias: Navigate
+    trigger:
+      ...
+    action:
+      service: notify.mobile_app_<your_device_id_here>
+      data:
+        message: "command_activity"
+        title: "google.navigation:q=arbys"
+        data:
+          channel: "com.google.android.apps.maps"
+          tag: "android.intent.action.VIEW"
+```
+
+To continue with the above example you can also launch [search results](https://developer.android.com/guide/components/intents-common#Maps) with the following:
+
+```yaml
+automation:
+  - alias: Search google maps
+    trigger:
+      ...
+    action:
+      service: notify.mobile_app_<your_device_id_here>
+      data:
+        message: "command_activity"
+        title: "geo:0,0?q=1600+Amphitheatre+Parkway%2C+CA"
+        data:
+          channel: "com.google.android.apps.maps"
+          tag: "android.intent.action.VIEW"
+```
+
+## BLE Beacon Transmitter
+
+![Android](/assets/android.svg)
+
+Users can turn the iBeacon transmitter on or off using `message: command_ble_transmitter` with the `title` being either `turn_off` or `turn_on`. If `title` is blank, not set or not one of the above expected values then the notification will post as normal.
+
+Example:
+
+```yaml
+automation:
+  - alias: Turn off BLE transmitter
+    trigger:
+      ...
+    action:
+      service: notify.mobile_app_<your_device_id_here>
+      data:
+        message: "command_ble_transmitter"
+        title: "turn_off"
+```
+
+
 ## Bluetooth
 
-![Android](/assets/android.svg) &nbsp;<span class="beta">BETA</span><br />
+![Android](/assets/android.svg)
 
 Users can turn Bluetooth on or off using `message: command_bluetooth` with the `title` being either `turn_off` or `turn_on`. If `title` is blank, not set or not one of the above expected values then the notification will post as normal.
 
@@ -37,7 +109,7 @@ Example:
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Command bluetooh
     trigger:
       ...
     action:
@@ -51,13 +123,13 @@ automation:
 
 ![Android](/assets/android.svg)
 
-Using notification commands you are now able to send a broadcast intent to another app in order to control that app based on the intent. Not all apps support intents and if they do they may document it for users to control. There are no `extras` provided at this time, it is only for sending an intent to another app. You must set `message: command_broadcast_intent` and the `title` must contain the intent action while `channel` must contain the package the intent is for. The package name and action are provided by the app you wish to send the intent to. If an invalid format is sent you may either see a notification or a toast message.
+Using notification commands you are now able to send a broadcast intent to another app in order to control that app based on the intent. Not all apps support intents and if they do they may document it for users to control. You must set `message: command_broadcast_intent` and the `title` must contain the intent action while `channel` must contain the package the intent is for. The package name and action are provided by the app you wish to send the intent to. If an invalid format is sent you may either see a notification or a toast message.
 
 Example:
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Send broadcast intent
     trigger:
       ...
     action:
@@ -73,7 +145,7 @@ An example of an application that accepts broadcast intents is [Sleep as Android
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Send broadcast intent to start sleep tracking
     trigger:
       ...
     action:
@@ -85,6 +157,22 @@ automation:
           channel: "com.urbandroid.sleep"
 ```
 
+[Extras](https://developer.android.com/reference/android/content/Intent#putExtra(java.lang.String,%20java.lang.String)) are also supported under the `group` parameter. As there can be any number of extras added to the intent we will need to split each extra by a comma `,`. Then each extra name and value needs to be separated by a colon `:`. The below example shows you how to turn on an alarm labeled `work` in the Sleep as Android application. In this example there are 2 extras being added to the intent.
+
+```yaml
+automation:
+  - alias: Send broadcast intent with extras
+    trigger:
+      ...
+    action:
+      service: notify.mobile_app_<your_device_id_here>
+      data:
+        message: command_broadcast_intent
+        title: "com.urbandroid.sleep.alarmclock.ALARM_STATE_CHANGE"
+        data:
+          channel: "com.urbandroid.sleep"
+          group: "alarm_label:work,alarm_enabled:false"
+```
 
 ## Do Not Disturb
 
@@ -107,7 +195,7 @@ In addition to sending the `message` you must also provide the state of Do Not D
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Command do not disturb
     trigger:
       ...
     action:
@@ -116,6 +204,28 @@ automation:
         message: "command_dnd"
         title: "priority_only"
 ```
+
+
+## High accuracy mode
+
+![Android](/assets/android.svg)
+
+Users can turn the high accuracy mode of the background location sensor on or off using `message: command_high_accuracy_mode` with the `title` being either `turn_off` or `turn_on`. If `title` is blank, not set or not one of the above expected values then the notification will post as normal.
+
+Example:
+
+```yaml
+automation:
+  - alias: Turn off high accuracy mode
+    trigger:
+      ...
+    action:
+      service: notify.mobile_app_<your_device_id_here>
+      data:
+        message: "command_high_accuracy_mode"
+        title: "turn_off"
+```
+
 
 ## Request Location Updates
 
@@ -128,7 +238,7 @@ You can force a device to attempt to report its location by sending a special no
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Request location update
     trigger:
       ...
     action:
@@ -160,7 +270,7 @@ On Android you can control the devices ringer mode by sending `message: command_
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Command ringer mode
     trigger:
       ...
     action:
@@ -187,7 +297,7 @@ On Android you can control the devices volume level by sending `message: command
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Command volume level
     trigger:
       ...
     action:
@@ -199,22 +309,22 @@ automation:
           channel: music_stream
 ```
 
-## High accuracy mode
+## Webview
 
-![Android](/assets/android.svg) &nbsp;<span class="beta">BETA</span><br />
+![Android](/assets/android.svg)
 
-Users can turn the high accuarcy mode of the background location sensor on or off using `message: command_high_accuracy_mode` with the `title` being either `turn_off` or `turn_on`. If `title` is blank, not set or not one of the above expected values then the notification will post as normal.
+If you want to just open the Companion app to any page or even the homepage you will want to send `message: command_webview`. If you wish to navigate to a specific [view or dashboard](https://www.home-assistant.io/lovelace/dashboards-and-views/) you will want to use `title` to specify the [`path`](https://www.home-assistant.io/lovelace/dashboards-and-views/#path) (example: `/lovelace/settings`). If `title` is not provided the user will be directed to the homepage. The first time you send this command you will be taken to a permission screen to grant the app access to display over other apps policy. This permission is necessary for the feature to work in the background and we cannot prompt the user to grant it.
 
 Example:
 
 ```yaml
 automation:
-  - alias: Notify Mobile app
+  - alias: Open android webview
     trigger:
       ...
     action:
       service: notify.mobile_app_<your_device_id_here>
       data:
-        message: "command_high_accuracy_mode"
-        title: "turn_off"
+        message: "command_webview"
+        title: "/lovelace/settings"
 ```

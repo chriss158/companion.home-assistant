@@ -32,6 +32,12 @@ Not all features are supported by Android at the moment but eventually most feat
       <td></td>
     </tr>
     <tr>
+      <td><a href="/docs/integrations/android-webview">Android WebView</a></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td></td>
+    </tr>
+    <tr>
       <td><a href="/docs/integrations/android-widgets">Android Widgets</a></td>
       <td>✅</td>
       <td>✅</td>
@@ -350,7 +356,7 @@ Not all features are supported by Android at the moment but eventually most feat
   </thead>
   <tbody>
     <tr>
-      <td><a href="/docs/core/sensors#activity-sensor">Activity Sensor</a></td>
+      <td><a href="/docs/core/sensors#activity-sensors">Activity Sensors</a></td>
       <td>✅</td>
       <td></td>
       <td>✅</td>
@@ -404,7 +410,7 @@ Not all features are supported by Android at the moment but eventually most feat
       <td>✅</td>
     </tr>
     <tr>
-      <td><a href="/docs/core/sensors#bluetooth-sensor">Bluetooth Sensor</a></td>
+      <td><a href="/docs/core/sensors#bluetooth-sensors">Bluetooth Sensors</a></td>
       <td>✅</td>
       <td>✅</td>
       <td></td>
@@ -495,6 +501,12 @@ Not all features are supported by Android at the moment but eventually most feat
     </tr>
     <tr>
       <td><a href="/docs/core/sensors#light-sensor">Light</a></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><a href="/docs/core/sensors#mobile-data-sensors">Mobile Data Sensors</a></td>
       <td>✅</td>
       <td>✅</td>
       <td></td>
